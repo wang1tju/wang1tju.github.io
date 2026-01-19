@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>张三 (San Zhang) - 学术主页</title>
+    <meta name="description" content="张三的个人学术主页，介绍研究兴趣、项目与技能。">
+    
+    <!-- 引入简单的字体图标 (用于社交媒体图标) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CSS 样式部分：决定网页长什么样 --- */
+        
+        /* 1. 全局设置 */
+        :root {
+            --primary-color: #2c3e50; /* 主色调：深蓝灰色 */
+            --accent-color: #3498db;  /* 强调色：蓝色 */
+            --bg-color: #f9f9f9;      /* 背景色：浅灰 */
+            --text-color: #333;       /* 文字颜色 */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+        }
+
+        /* 2. 布局容器 */
+        .container {
+            max-width: 900px; /* 内容最大宽度，避免在宽屏上太分散 */
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); /* 给中间的内容加一点阴影 */
+            min-height: 100vh;
+        }
+
+        /* 3. 头部导航 */
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%; /* 圆形头像 */
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 10px 0 5px 0;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            color: #666;
+            font-weight: 300;
+            font-size: 1.1em;
+        }
+
+        nav {
+            margin-top: 20px;
+        }
+
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        nav a:hover {
+            color: var(--accent-color);
+        }
+
+        /* 4. 通用板块样式 */
+        section {
+            padding: 40px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        section:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* 5. 具体板块：关于我 */
+        .bio-text {
+            font-size: 1.05em;
+            color: #444;
+        }
+
+        /* 6. 具体板块：研究兴趣 (列表) */
+        .interests-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .interest-tag {
+            background-color: #eef2f5;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: var(--primary-color);
+        }
+
+        /* 7. 具体板块：正在进行的项目 (卡片式布局) */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 自适应列 */
+            gap: 20px;
+        }
+
+        .project-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+            background: #fff;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px); /* 鼠标悬停时轻微上浮 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .project-status {
+            display: inline-block;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .status-ongoing { background-color: #fff3cd; color: #856404; }
+        .status-review { background-color: #d4edda; color: #155724; }
+
+        .project-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* 8. 具体板块：技能与荣誉 */
+        .skills-grid {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .skill-category {
+            width: 48%;
+        }
+
+        ul.honor-list li {
+            margin-bottom: 10px;
+        }
+
+        .honor-year {
+            font-weight: bold;
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 9. 页脚 */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .social-links a {
+            color: var(--primary-color);
+            font-size: 1.5em;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .skills-grid {
+                flex-direction: column;
+            }
+            .skill-category {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 头部：头像和导航 -->
+        <header>
+            <!-- 请替换下面的 src 图片链接为你自己的照片链接，或者放在同一目录下的 photo.jpg -->
+            <img src="https://via.placeholder.com/150" alt="张三的头像" class="avatar">
+            <h1>张三 (San Zhang)</h1>
+            <div class="subtitle">Ph.D. Student in Computer Science @ XX University</div>
+            
+            <nav>
+                <a href="#about">About</a>
+                <a href="#interests">Interests</a>
+                <a href="#projects">Projects</a>
+                <a href="#skills">Skills</a>
+                <a href="#honors">Honors</a>
+            </nav>
+        </header>
+
+        <!-- 1. 关于我 -->
+        <section id="about">
+            <h2>About Me</h2>
+            <div class="bio-text">
+                <p>你好！我是张三，目前是 [XX大学] 的博士研究生。我的导师是 [导师名字] 教授。</p>
+                <p>我的主要研究重点在于如何利用人工智能解决 [具体领域] 的问题。我热衷于探索 [细分方向1] 和 [细分方向2] 的交叉领域。</p>
+                <p>在攻读博士学位之前，我在 [本科学校] 获得了学士学位。</p>
+            </div>
+            <!-- 可以放一个下载简历的按钮 -->
+            <p style="margin-top: 20px;">
+                <a href="#" style="color: var(--accent-color); text-decoration: none;">
+                    <i class="fas fa-file-pdf"></i> Download Full CV
+                </a>
+            </p>
+        </section>
+
+        <!-- 2. 研究兴趣 -->
+        <section id="interests">
+            <h2>Research Interests</h2>
+            <p>我对以下领域有着浓厚的兴趣：</p>
+            <ul class="interests-list">
+                <li class="interest-tag">Machine Learning</li>
+                <li class="interest-tag">Computer Vision</li>
+                <li class="interest-tag">Natural Language Processing</li>
+                <li class="interest-tag">Robotics</li>
+                <li class="interest-tag">Data Mining</li>
+            </ul>
+        </section>
+
+        <!-- 3. 正在进行的项目 -->
+        <section id="projects">
+            <h2>Ongoing Projects</h2>
+            <div class="project-grid">
+                
+                <!-- 项目卡片 1 -->
+                <div class="project-card">
+                    <span class="project-status status-ongoing">In Progress</span>
+                    <span class="project-title">项目名称 A：关于大规模数据的深度学习优化</span>
+                    <p>这是一个简短的介绍。我们正在尝试解决模型训练中的收敛速度问题。目前我们在 ImageNet 数据集上取得了初步成果。</p>
+                </div>
+
+                <!-- 项目卡片 2 -->
+                <div class="project-card">
+                    <span class="project-status status-review">Under Review</span>
+                    <span class="project-title">项目名称 B：多模态情感分析系统</span>
+                    <p>该项目结合了文本和图像数据来识别社交媒体中的情感倾向。论文目前正在 CVPR 审稿中。</p>
+                </div>
+
+                <!-- 项目卡片 3 -->
+                <div class="project-card">
+                    <span class="project-status status-ongoing">In Preparation</span>
+                    <span class="project-title">项目名称 C：新的强化学习算法</span>
+                    <p>正在探索一种基于无监督学习的奖励机制设计。初步实验表明该方法具有很强的鲁棒性。</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. 技能 -->
+        <section id="skills">
+            <h2>Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3>Programming</h3>
+                    <ul>
+                        <li>Python (PyTorch, TensorFlow)</li>
+                        <li>C++</li>
+                        <li>MATLAB</li>
+                        <li>JavaScript / HTML / CSS</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>Tools & Others</h3>
+                    <ul>
+                        <li>LaTeX</li>
+                        <li>Git / GitHub</li>
+                        <li>Linux / Shell Scripting</li>
+                        <li>Adobe Photoshop / Illustrator</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 荣誉与奖项 -->
+        <section id="honors">
+            <h2>Honors & Awards</h2>
+            <ul class="honor-list">
+                <li><span class="honor-year">2023</span> Best Paper Award, IEEE Conference on XXX</li>
+                <li><span class="honor-year">2022</span> National Scholarship (Top 1%), Ministry of Education</li>
+                <li><span class="honor-year">2021</span> Outstanding Graduate, XX University</li>
+                <li><span class="honor-year">2020</span> First Prize, Mathematical Modeling Contest</li>
+            </ul>
+        </section>
+
+        <!-- 页脚 -->
+        <footer>
+            <div class="social-links">
+                <a href="mailto:your-email@example.com" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://github.com/yourusername" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" title="Google Scholar"><i class="fas fa-graduation-cap"></i></a>
+                <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <p>&copy; 2024 San Zhang. Hosted on GitHub Pages.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
