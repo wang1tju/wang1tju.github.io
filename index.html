@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Academic Dashboard</title>
+    <style>
+        /* =========================================
+           1. CSS Variables & Reset
+           ========================================= */
+        :root {
+            --bg-color: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --accent-color: #3b82f6; /* Blue-500 */
+            --accent-hover: #2563eb;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition-speed: 0.5s;
+            --transition-curve: cubic-bezier(0.25, 0.8, 0.25, 1);
+
+            /* Define size for the small squares in focus mode */
+            --square-size: 110px;
+            --gap-size: 1.5rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           2. Main Layout (Sidebar + Dashboard)
+           ========================================= */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- Left Sidebar --- */
+        .sidebar {
+            width: 30%;
+            min-width: 350px;
+            max-width: 500px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            margin: 0 auto 1rem;
+            background-image: url('profile.jpg');
+            background-size: cover;
+            border: 3px solid var(--accent-color);
+        }
+
+        .name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .bio {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .edu-list, .contact-list {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .edu-item {
+            margin-bottom: 1rem;
+        }
+
+        .edu-degree { font-weight: 600; font-size: 1rem; }
+        .edu-school { color: var(--text-secondary); font-size: 0.9rem; }
+        .edu-year { color: var(--text-secondary); font-size: 0.8rem; }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contact-item:hover { color: var(--accent-color); }
+        .contact-item svg { margin-right: 12px; width: 20px; height: 20px; stroke: currentColor; }
+
+
+        /* --- Right Main Area --- */
+        .main-area {
+            flex: 1;
+            padding: 2rem;
+            /* Allow scrolling if content is taller than viewport */
+            overflow-y: auto;
+            position: relative;
+            height: 100vh;
+        }
+
+        /* THE MAGIC GRID
+           State A: Bento Grid (Default)
+        */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, minmax(240px, 1fr));
+            gap: var(--gap-size);
+            transition: all var(--transition-speed) var(--transition-curve);
+            min-height: 100%;
+            position: relative;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) var(--transition-curve);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+        }
+
+        /* Bento Span Logic (CORRECTED LAYOUT)
+           Rows are 1fr each.
+        */
+
+        /* 1. Research: Left Top 2x2 */
+        .card[data-id="1"] {
+            grid-column: 1 / 3;
+            grid-row: 1 / 3;
+        }
+
+        /* 2. Interests: Right Top (Row 1, Col 3) */
+        .card[data-id="2"] {
+            grid-column: 3 / 4;
+            grid-row: 1 / 2;
+        }
+
+        /* 5. Snippets: Right Middle (Row 2, Col 3) */
+        .card[data-id="5"] {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
+        }
+
+        /* 3. Ideas: Bottom Left (Row 3, Col 1) */
+        .card[data-id="3"] {
+            grid-column: 1 / 2;
+            grid-row: 3 / 4;
+        }
+
+        /* 4. Reading: Bottom Center (Row 3, Col 2) */
+        .card[data-id="4"] {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+        }
+
+        /* 6. Changelog: Bottom Right (Row 3, Col 3) */
+        .card[data-id="6"] {
+            grid-column: 3 / 4;
+            grid-row: 3 / 4;
+        }
+
+        /* Inner Content */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .card-icon {
+            color: var(--accent-color);
+            transition: all 0.3s;
+        }
+
+        /* KEY INTERACTION LOGIC:
+           1. .card-summary is visible by default.
+           2. .card-details is hidden by default.
+           3. When .card.active:
+              - .card-summary becomes HIDDEN (display: none).
+              - .card-details becomes VISIBLE (display: flex).
+        */
+
+        .card-summary {
+            flex: 1;
+            opacity: 1;
+            transition: opacity 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card.active .card-summary {
+            display: none; /* Hide summary on expand */
+        }
+
+        .card-details {
+            display: none; /* Hidden by default */
+            opacity: 0;
+            margin-top: 0; /* Reset margin since it replaces summary */
+            animation: fadeIn 0.5s 0.1s forwards; /* Slight delay for smoothness */
+            padding-bottom: 1rem;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card.active .card-details {
+            display: flex; /* Show details on active */
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 20;
+        }
+
+        .close-btn:hover {
+            background: #e5e7eb;
+            color: var(--accent-color);
+        }
+
+        /* =========================================
+           5. PROJECT STYLES
+           ========================================= */
+
+        /* --- A. Summary Grid (2 Columns, Shown when Collapsed) --- */
+        .project-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 1.2rem;
+            width: 100%;
+            height: 100%;
+        }
+
+        .project-summary-item {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        /* Just static decoration, not interactive */
+        .project-summary-item:hover {
+            background: #fff;
+            border-color: var(--accent-color);
+        }
+
+        .ps-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ps-bar-box { height: 6px; background: #e5e7eb; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+        .ps-bar-fill { height: 100%; border-radius: 3px; background: var(--accent-color); }
+        .ps-stage { font-size: 0.8rem; color: var(--text-secondary); font-family: monospace; }
+
+
+        /* --- B. Detailed List (1 Column, Accordion, Shown when Expanded) --- */
+        .project-list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            padding-right: 5px; /* space for scrollbar */
+        }
+
+        .project-accordion-item {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: #fff;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .project-accordion-item:hover {
+            box-shadow: var(--shadow-sm);
+            border-color: var(--accent-color);
+        }
+
+        .project-accordion-item.expanded {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .accordion-header {
+            padding: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+        }
+
+        .project-accordion-item.expanded .accordion-header {
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .ah-left { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .ah-title { font-weight: 600; font-size: 1rem; color: var(--text-main); }
+        .ah-status { font-size: 0.8rem; color: var(--text-secondary); }
+
+        .ah-right { display: flex; align-items: center; gap: 10px; }
+        .ah-progress { width: 80px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+        .ah-progress-fill { height: 100%; background: var(--accent-color); }
+        .ah-percent { font-size: 0.85rem; font-weight: 600; color: var(--accent-color); min-width: 35px; text-align: right;}
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #fff;
+            padding: 0 1rem;
+        }
+
+        .project-accordion-item.expanded .accordion-body {
+            max-height: 500px; /* Allow expansion */
+            padding: 1rem;
+        }
+
+        .body-desc { font-size: 0.9rem; color: #4b5563; margin-bottom: 0.8rem; line-height: 1.5; }
+        .body-meta { font-size: 0.85rem; background: #eff6ff; padding: 0.8rem; border-radius: 6px; color: #1e3a8a; }
+        .body-link { display: inline-flex; align-items: center; margin-top: 0.8rem; color: var(--accent-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+        .body-link:hover { text-decoration: underline; }
+
+
+        /* =========================================
+           3. FOCUS MODE (State B - FIXED & ROBUST)
+           ========================================= */
+
+        /* Layout when focused */
+        .dashboard-grid.has-active {
+            grid-template-columns: 1fr var(--square-size);
+
+            /* Rows: 5 fixed rows for the squares + 1 flexible row (1fr) */
+            grid-template-rows: repeat(5, var(--square-size)) 1fr;
+
+            gap: 1rem;
+            padding-right: 5px;
+        }
+
+        /* The Active Card */
+        .dashboard-grid.has-active .card.active {
+            grid-column: 1 / 2 !important;
+            grid-row: 1 / -1 !important;
+
+            cursor: default;
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-color);
+            z-index: 5;
+
+            overflow-y: auto;
+            transform: none !important;
+
+            height: auto;
+            min-height: 100%;
+        }
+
+        .card.active .close-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* The Inactive Cards (The 5 small squares) */
+        .dashboard-grid.has-active .card:not(.active) {
+            grid-column: 2 / 3 !important;
+            grid-row: auto !important;
+
+            width: 100%;
+            height: 100%;
+
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dashboard-grid.has-active .card:not(.active):hover {
+            background: #f3f4f6;
+            transform: scale(1.05);
+            border-color: var(--accent-color);
+            z-index: 6;
+        }
+
+        .dashboard-grid.has-active .card:not(.active) .card-summary {
+            display: none;
+        }
+
+        .dashboard-grid.has-active .card:not(.active) .card-header {
+            margin-bottom: 0;
+            justify-content: center;
+            width: 100%;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dashboard-grid.has-active .card:not(.active) .card-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .dashboard-grid.has-active .card:not(.active) .card-title span {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            display: block;
+            white-space: normal;
+            line-height: 1.1;
+        }
+
+        /* =========================================
+           4. Component Specific Styles (Internal Content)
+           ========================================= */
+
+        /* Progress Bar */
+        .progress-container { margin-top: 10px; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600;}
+        .progress-bar-bg { background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { background: var(--accent-color); height: 100%; width: 0%; transition: width 1s ease-out; }
+
+        /* Tags */
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { background: #eff6ff; color: var(--accent-color); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+
+        /* Todo List */
+        .todo-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+        .todo-check { margin-top: 4px; accent-color: var(--accent-color); }
+        .todo-text { font-size: 0.9rem; color: var(--text-secondary); text-decoration: line-through; }
+        .todo-text.active { color: var(--text-main); text-decoration: none; }
+
+        /* ChangeLog */
+        .log-entry { display: flex; gap: 15px; margin-bottom: 12px; font-size: 0.9rem; border-left: 2px solid #e5e7eb; padding-left: 15px; }
+        .log-date { font-family: monospace; color: var(--text-secondary); white-space: nowrap; }
+        .log-desc { color: var(--text-main); }
+
+        /* Snippets */
+        .code-preview { font-family: 'Fira Code', monospace; font-size: 0.8rem; background: #111827; color: #10b981; padding: 10px; border-radius: 6px; margin-top: 10px; }
+
+        /* Book List */
+        .book-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .book-icon { background: #fee2e2; color: #ef4444; width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid var(--border-color); padding: 2rem;}
+            body { overflow: auto; }
+            .main-area { height: auto; }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto;
+                grid-auto-rows: 240px;
+            }
+
+            /* Reset positions for tablet */
+            .card[data-id="1"] { grid-column: 1 / span 2; grid-row: auto; }
+            .card[data-id="2"], .card[data-id="3"], .card[data-id="4"],
+            .card[data-id="5"], .card[data-id="6"] { grid-column: auto; grid-row: auto; }
+
+            .dashboard-grid.has-active {
+                grid-template-columns: 1fr 90px;
+                --square-size: 80px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-grid.has-active { display: block; }
+            .dashboard-grid.has-active .card:not(.active) { display: none; }
+            .card.active { height: auto; min-height: 80vh; }
+
+            .card[data-id="1"] { grid-column: span 1; grid-row: auto; }
+            .project-summary-grid { grid-template-columns: 1fr; } /* Stack projects on mobile */
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <div class="profile-section">
+            <div class="avatar"></div>
+            <h1 class="name">Yi Wang</h1>
+            <p class="title">Ph.D. Candidate in TJU</p>
+        </div>
+
+        <div class="bio">
+            <p>管理科学与工程专业博三学生，<br>专注于运营管理领域的理论模型研究</p>
+        </div>
+
+        <div>
+            <h3 class="section-title">Education</h3>
+            <ul class="edu-list">
+                <li class="edu-item">
+                    <div class="edu-degree">Ph.D. Management Science</div>
+                    <div class="edu-school">Tianjin University</div>
+                    <div class="edu-year">2023 - Present</div>
+                </li>
+                <li class="edu-item">
+                    <div class="edu-degree">M.Sc. System Engineering</div>
+                    <div class="edu-school">Tianjin University</div>
+                    <div class="edu-year">2021 - 2023</div>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 class="section-title">Connect</h3>
+            <div class="contact-list">
+                <a href="#" class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    Wang1@tju.edu.cn
+                </a>
+                <a href="#" class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    github.com/rafarockytju
+                </a>
+                <a href="#" class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+                    rafarocky1
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- RIGHT MAIN AREA -->
+    <main class="main-area">
+        <div class="dashboard-grid" id="dashboard">
+
+            <!-- Card 1: Research Progress (Span 2x2) -->
+            <div class="card" data-id="1">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <span>科研进度</span>
+                    </div>
+                </div>
+
+                <!-- VIEW 1: SUMMARY (2 Columns, Visible by Default) -->
+                <div class="card-summary">
+                    <div class="project-summary-grid">
+                        <!-- Project 1 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">1. Supply Chain Resilience</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 85%;"></div></div>
+                            <div class="ps-stage">Model Tuning</div>
+                        </div>
+                        <!-- Project 2 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">2. Green Inventory Mgmt</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 60%; background-color: #10b981;"></div></div>
+                            <div class="ps-stage">Data Analysis</div>
+                        </div>
+                        <!-- Project 3 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">3. Cross-border Logistics</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 45%; background-color: #f59e0b;"></div></div>
+                            <div class="ps-stage">Simulation</div>
+                        </div>
+                        <!-- Project 4 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">4. Live Streaming Behavior</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 30%; background-color: #8b5cf6;"></div></div>
+                            <div class="ps-stage">Survey Design</div>
+                        </div>
+                        <!-- Project 5 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">5. Platform Economy</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 95%; background-color: #ef4444;"></div></div>
+                            <div class="ps-stage">Final Polish</div>
+                        </div>
+                        <!-- Project 6 -->
+                        <div class="project-summary-item">
+                            <div class="ps-title">6. Healthcare Blockchain</div>
+                            <div class="ps-bar-box"><div class="ps-bar-fill" style="width: 15%; background-color: #6366f1;"></div></div>
+                            <div class="ps-stage">Lit Review</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: DETAILS (1 Column Accordion, Visible ONLY when Active) -->
+                <div class="card-details">
+                    <h3 style="margin-bottom: 1rem;">项目详细信息</h3>
+                    <div class="project-list-view">
+                        <!-- Item 1 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">1. Supply Chain Resilience Model</span>
+                                    <span class="ah-status">Status: Model Tuning</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 85%;"></div></div>
+                                    <span class="ah-percent">85%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">基于Agent-based modeling的供应链中断风险恢复机制研究。目前正在调整参数灵敏度，测试不同中断场景下的恢复曲线。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-25 验证鲁棒性。</div>
+                                </div>
+                                <a href="#" class="body-link">Draft_v4.2.pdf</a>
+                            </div>
+                        </div>
+
+                        <!-- Item 2 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">2. Green Inventory Management</span>
+                                    <span class="ah-status">Status: Data Analysis</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 60%; background-color: #10b981;"></div></div>
+                                    <span class="ah-percent">60%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">考虑碳排放约束的多级库存优化问题。目前正在处理某制造企业的实际库存数据，清洗异常值。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-20 数据清洗完成。</div>
+                                </div>
+                                <a href="#" class="body-link">View Dataset.csv</a>
+                            </div>
+                        </div>
+
+                        <!-- Item 3 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">3. Cross-border Logistics</span>
+                                    <span class="ah-status">Status: Simulation</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 45%; background-color: #f59e0b;"></div></div>
+                                    <span class="ah-percent">45%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">海外仓选址与配送路径协同优化。仿真环境搭建中，主要使用Python进行模拟。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-15 代码框架搭建完毕。</div>
+                                </div>
+                                <a href="#" class="body-link">Simulation_Repo</a>
+                            </div>
+                        </div>
+
+                        <!-- Item 4 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">4. Live Streaming Behavior</span>
+                                    <span class="ah-status">Status: Survey Design</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 30%; background-color: #8b5cf6;"></div></div>
+                                    <span class="ah-percent">30%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">直播带货场景下的冲动消费影响因素分析（SEM模型）。问卷设计阶段。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-10 问卷初稿完成。</div>
+                                </div>
+                                <a href="#" class="body-link">Survey_Draft.docx</a>
+                            </div>
+                        </div>
+
+                         <!-- Item 5 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">5. Platform Economy Regulation</span>
+                                    <span class="ah-status">Status: Final Polish</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 95%; background-color: #ef4444;"></div></div>
+                                    <span class="ah-percent">95%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">双边市场下的平台定价与监管博弈模型。正在根据审稿意见进行最后修改。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-24 收到审稿人意见。</div>
+                                </div>
+                                <a href="#" class="body-link">Response_Letter.pdf</a>
+                            </div>
+                        </div>
+
+                         <!-- Item 6 -->
+                        <div class="project-accordion-item">
+                            <div class="accordion-header">
+                                <div class="ah-left">
+                                    <span class="ah-title">6. Healthcare Blockchain</span>
+                                    <span class="ah-status">Status: Lit Review</span>
+                                </div>
+                                <div class="ah-right">
+                                    <div class="ah-progress"><div class="ah-progress-fill" style="width: 15%; background-color: #6366f1;"></div></div>
+                                    <span class="ah-percent">15%</span>
+                                </div>
+                            </div>
+                            <div class="accordion-body">
+                                <p class="body-desc">区块链技术在医疗冷链溯源中的应用综述。文献整理阶段。</p>
+                                <div class="body-meta">
+                                    <div class="meta-row"><strong>Log:</strong> 2023-10-01 开始文献检索。</div>
+                                </div>
+                                <a href="#" class="body-link">Ref_Library.bib</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Interests -->
+            <div class="card" data-id="2">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                        <span>研究方向</span>
+                    </div>
+                </div>
+                <div class="card-summary">
+                    <div class="tags">
+                        <span class="tag">HCI</span>
+                        <span class="tag">Data Viz</span>
+                        <span class="tag">GenAI</span>
+                        <span class="tag">AR/VR</span>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <p>我的研究兴趣集中在如何利用生成式人工智能辅助复杂数据的可视化分析。</p>
+                    <br>
+                    <strong>Current Focus:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>Prompt Engineering for Vega-Lite generation</li>
+                        <li>Interaction patterns in AI-assisted dashboards</li>
+                        <li>Trust and Explainability in AI charts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 5: Snippets -->
+            <div class="card" data-id="5">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        <span>代码碎片</span>
+                    </div>
+                </div>
+                <div class="card-summary">
+                    <div style="font-size:0.85rem; color:#666;">D3.js Force Layout Config</div>
+                    <div class="code-preview">const simulation = d3.forceSimulation(nodes)...</div>
+                </div>
+                <div class="card-details">
+                    <h3>Useful Snippets</h3>
+                    <p>D3.js Force Directed Graph Boilerplate</p>
+                    <pre style="background:#1f2937; color:#f3f4f6; padding:15px; border-radius:8px; overflow-x:auto; font-size:0.85rem; margin-top:10px;">
+const simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(links).id(d => d.id))
+  .force("charge", d3.forceManyBody())
+  .force("center", d3.forceCenter(width / 2, height / 2));
+
+simulation.on("tick", () => {
+    // update positions
+});</pre>
+                </div>
+            </div>
+
+            <!-- Card 3: Ideas / Todo -->
+            <div class="card" data-id="3">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <span>Ideas / Todo</span>
+                    </div>
+                </div>
+                <div class="card-summary">
+                    <div class="todo-item"><input type="checkbox" class="todo-check" checked> <span class="todo-text">回复 Review #2 邮件</span></div>
+                    <div class="todo-item"><input type="checkbox" class="todo-check"> <span class="todo-text active">更新 CV</span></div>
+                </div>
+                <div class="card-details">
+                    <h3>待办事项详情</h3>
+                    <p>这是一个更详细的任务看板。</p>
+                    <br>
+                    <div class="todo-item"><input type="checkbox" class="todo-check"> <span class="todo-text active"><strong>Idea:</strong> 眼动仪追踪实验设计。</span></div>
+                </div>
+            </div>
+
+            <!-- Card 4: Reading List -->
+            <div class="card" data-id="4">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <span>阅读清单</span>
+                    </div>
+                </div>
+                <div class="card-summary">
+                    <div class="book-item"><div class="book-icon">PDF</div> <div style="font-size: 0.85rem">Viz Analysis</div></div>
+                    <div class="book-item"><div class="book-icon">PDF</div> <div style="font-size: 0.85rem">Design of Everyday</div></div>
+                </div>
+                <div class="card-details">
+                    <h3>最近阅读</h3>
+                    <div style="margin-top: 20px;">
+                        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                            <strong>Visualization Analysis</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Changelog -->
+            <div class="card" data-id="6">
+                <button class="close-btn" aria-label="Close details">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg class="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span>更新日志</span>
+                    </div>
+                </div>
+                <div class="card-summary">
+                    <div class="log-entry">
+                        <div class="log-date">Oct 24</div>
+                        <div class="log-desc">提交 CHI 2025</div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Timeline</h3>
+                    <div class="log-entry">
+                        <div class="log-date">Today</div>
+                        <div class="log-desc">Dashboard UI Updated.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dashboard = document.getElementById('dashboard');
+        const cards = document.querySelectorAll('.card');
+
+        // Function to handle card click (Expand)
+        function handleCardClick(event) {
+            // Check if clicking inside a accordion header, we might want to allow it
+            // But let's check active state first
+            if (this.classList.contains('active')) return;
+
+            const cardId = this.getAttribute('data-id');
+            dashboard.classList.add('has-active');
+
+            cards.forEach(c => {
+                if (c === this) {
+                    c.classList.add('active');
+                } else {
+                    c.classList.remove('active');
+                }
+            });
+        }
+
+        // Function to handle close button click (Collapse)
+        function handleClose(event) {
+            event.stopPropagation();
+            dashboard.classList.remove('has-active');
+            cards.forEach(c => c.classList.remove('active'));
+
+            // Close project details
+            document.querySelectorAll('.project-accordion-item.expanded').forEach(item => {
+                item.classList.remove('expanded');
+            });
+        }
+
+        // Attach Event Listeners to Cards
+        cards.forEach(card => {
+            card.addEventListener('click', handleCardClick);
+            const closeBtn = card.querySelector('.close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', handleClose);
+            }
+        });
+
+        // Accordion Logic (Only works when card is active)
+        const accHeaders = document.querySelectorAll('.accordion-header');
+        accHeaders.forEach(header => {
+            header.addEventListener('click', (e) => {
+                e.stopPropagation(); // Don't trigger card click
+
+                const item = header.parentElement;
+                const isExpanded = item.classList.contains('expanded');
+
+                // Toggle current
+                if (isExpanded) {
+                    item.classList.remove('expanded');
+                } else {
+                    // Optional: Close others
+                    // document.querySelectorAll('.project-accordion-item').forEach(i => i.classList.remove('expanded'));
+                    item.classList.add('expanded');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
